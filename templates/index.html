@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeoBank | SilentAuth AI</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Register / Login toggle ── */
+    .hidden { display: none !important; }
+
+    #registerForm label { display: block; margin: 14px 0 6px; color: #d8e9ff; }
+
+    .toggle-link {
+      display: block;
+      margin-top: 18px;
+      color: #56ccf2;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .toggle-link:hover { text-decoration: underline; }
+
+    /* ── ML status badge ── */
+    .ml-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .ml-badge.heuristic { background: rgba(251,191,36,.15); color: #fbbf24; }
+    .ml-badge.ml-model  { background: rgba(86,204,242,.15); color: #56ccf2; }
+
+    /* ── Feature grid in AI monitor card ── */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .feat-item {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .feat-item .feat-label { font-size: 11px; color: #7f9bb8; margin-bottom: 4px; }
+    .feat-item .feat-value { font-size: 16px; font-weight: 600; color: #56ccf2; }
+
+    /* ── Keystroke counter in login card ── */
+    .keystroke-meter {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #7f9bb8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ks-bar-wrap {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .ks-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #2f80ed, #56ccf2);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN PAGE
+═══════════════════════════════════════════════════════ -->
+<div id="login-page" class="page active">
+  <div class="login-container">
+
+    <!-- LEFT HERO -->
+    <div class="hero-section">
+      <div class="logo">NeoBank</div>
+      <p class="small brand-subtitle">Secured by SilentAuth AI</p>
+
+      <div class="ai-status">
+        <span class="pulse"></span>
+        Behavioral AI Verification Active
+      </div>
+
+      <h1>Password-less<br>AI Banking</h1>
+
+      <p class="subtitle">
+        NeoBank uses SilentAuth AI to continuously verify identity through
+        keystroke dynamics, mouse behaviormetrics, IsolationForest anomaly
+        detection, and adaptive trust scoring — all without extra friction.
+      </p>
+
+      <div class="orb-container">
+        <div class="orb-ring">
+          <div class="orb">🌐</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+
+      <!-- ── Login form ── -->
+      <div id="loginForm">
+        <h2>Secure Login</h2>
+        <p class="small">Authenticate using SilentAuth AI</p>
+
+        <label>Email</label>
+        <input type="email"    id="emailInput"    placeholder="Enter your email" />
+
+        <label>Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter password" />
+
+        <!-- Live keystroke capture indicator -->
+        <div class="keystroke-meter">
+          <span id="ksCount">0 signals captured</span>
+          <div class="ks-bar-wrap"><div class="ks-bar" id="ksBar"></div></div>
+        </div>
+
+        <button id="loginBtn">Start Secure Scan</button>
+
+        <p class="hint">
+          SilentAuth AI captures typing rhythm, dwell time, and mouse dynamics
+          while you fill this form. No extra steps.
+        </p>
+
+        <span class="toggle-link" id="showRegister">
+          No account? Create one →
+        </span>
+      </div>
+
+      <!-- ── Register form ── -->
+      <div id="registerForm" class="hidden">
+        <h2>Create Account</h2>
+        <p class="small">Start building your behavioral baseline</p>
+
+        <label>Full Name</label>
+        <input type="text"     id="usernameInput"    placeholder="Enter your name" />
+
+        <label>Email</label>
+        <input type="email"    id="regEmailInput"    placeholder="Enter your email" />
+
+        <label>Password</label>
+        <input type="password" id="regPasswordInput" placeholder="Min 6 characters" />
+
+        <button id="registerBtn">Create Account</button>
+
+        <span class="toggle-link" id="showLogin">
+          ← Back to Login
+        </span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     DASHBOARD PAGE
+═══════════════════════════════════════════════════════ -->
+<div id="dashboard-page" class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <h2>NeoBank Dashboard</h2>
+      <p>Protected by SilentAuth AI</p>
+    </div>
+    <button class="ghost-btn" id="logoutBtn">Logout</button>
+  </div>
+
+  <!-- AI STATUS BAR -->
+  <div class="ai-status">
+    <span class="pulse"></span>
+    SilentAuth Monitoring Active &nbsp;|&nbsp;
+    Engine: <span id="trustMethod">Heuristic</span>
+    <span class="ml-badge heuristic" id="mlBadge">Baseline</span>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid">
+
+    <!-- PROFILE -->
+    <div class="card">
+      <h3>Account Holder</h3>
+      <div class="profile-box">
+        <div class="avatar">SA</div>
+        <div>
+          <h4 id="displayName">User</h4>
+          <p class="small">Verified Banking Identity</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BALANCE -->
+    <div class="card">
+      <h3>Total Balance</h3>
+      <div class="amount" id="balanceAmount">₹ 2,45,000</div>
+      <p class="small">AI Protected Financial Assets</p>
+    </div>
+
+    <!-- TRUST SCORE -->
+    <div class="card">
+      <h3>Trust Score</h3>
+      <div class="trust-ring">
+        <div class="trust-inner">75%</div>
+      </div>
+      <p class="small">
+        Risk Level: <span id="riskLevel">Medium</span>
+      </p>
+    </div>
+
+    <!-- AI MONITOR — live behavioral features -->
+    <div class="card">
+      <h3>SilentAuth AI Monitor</h3>
+
+      <div class="feat-grid">
+        <div class="feat-item">
+          <div class="feat-label">Avg Dwell Time</div>
+          <div class="feat-value" id="featDwell">— ms</div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-label">Avg Flight Time</div>
+          <div class="feat-value" id="featFlight">— ms</div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-label">Rhythm Variance</div>
+          <div class="feat-value" id="featVariance">— ms</div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-label">Typing Speed</div>
+          <div class="feat-value" id="featSpeed">— cps</div>
+        </div>
+      </div>
+
+      <div class="logs" style="margin-top:16px">
+        <p>⏳ Awaiting first session ping…</p>
+      </div>
+    </div>
+
+    <!-- AUTH MODES -->
+    <div class="card">
+      <h3>Authentication Modes</h3>
+      <div class="mode-buttons">
+        <button onclick="setMode('normal')">Normal Mode</button>
+        <button onclick="setMode('delegate')">Delegate Mode</button>
+        <button onclick="setMode('secure')">High Security</button>
+        <button onclick="setMode('lockdown')">Emergency Lockdown</button>
+      </div>
+    </div>
+
+    <!-- DELEGATE INFO -->
+    <div class="card">
+      <h3>Trusted Delegate Access</h3>
+      <p>Status: Verified</p>
+      <p>Helper Device: Approved</p>
+      <p>Access Type: Assisted Banking</p>
+      <p>AI Confidence: <span id="delegateConf">—</span></p>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="card transactions">
+      <h3>Recent Transactions</h3>
+      <ul id="transactionList">
+        <li><span>Loading…</span></li>
+      </ul>
+    </div>
+
+    <!-- SEND MONEY -->
+    <div class="card">
+      <h3>Send Money</h3>
+      <p class="small" style="margin-bottom:10px">
+        Current trust: <strong id="transferTrustDisplay">—%</strong>
+        (min 40% required)
+      </p>
+
+      <label>Recipient Name</label>
+      <input type="text"   id="recipientName"   placeholder="Enter recipient name" />
+
+      <label>Amount (₹)</label>
+      <input type="number" id="transferAmount"  placeholder="Enter amount" />
+
+      <label>Purpose</label>
+      <input type="text"   id="purpose"         placeholder="Purpose of transfer" />
+
+      <button id="transferBtn">Transfer Money</button>
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /dashboard-page -->
+
+<script src="/static/script.js"></script>
+
+<script>
+  // ── Live keystroke capture meter on login page ─────────────────────
+  (function() {
+    const ksCount = document.getElementById("ksCount");
+    const ksBar   = document.getElementById("ksBar");
+    const MAX_SIGNALS = 30;
+
+    setInterval(() => {
+      // Read from the global collector
+      if (typeof collector === "undefined") return;
+      const n   = collector.keystrokeCount;
+      const pct = Math.min((n / MAX_SIGNALS) * 100, 100);
+      if (ksCount) ksCount.textContent = `${n} signal${n !== 1 ? "s" : ""} captured`;
+      if (ksBar)   ksBar.style.width   = pct + "%";
+    }, 500);
+  })();
+
+  // ── Keep transfer trust display in sync ────────────────────────────
+  setInterval(() => {
+    const el = document.getElementById("transferTrustDisplay");
+    if (el && typeof currentTrust !== "undefined") {
+      el.textContent = currentTrust + "%";
+      el.style.color =
+        currentTrust >= 80 ? "#7ee081" :
+        currentTrust >= 60 ? "#fbbf24" : "#f87171";
+    }
+    const dc = document.getElementById("delegateConf");
+    if (dc && typeof currentTrust !== "undefined") {
+      dc.textContent = currentTrust + "%";
+    }
+    const mb = document.getElementById("mlBadge");
+    if (mb) {
+      const method = document.getElementById("trustMethod")?.textContent;
+      if (method === "IsolationForest") {
+        mb.textContent = "ML Active";
+        mb.className   = "ml-badge ml-model";
+      } else {
+        mb.textContent = "Baseline";
+        mb.className   = "ml-badge heuristic";
+      }
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
